@@ -40,7 +40,7 @@ class database(object):
 
     @classmethod
     def create_table(cls, model_class, safe=False):
-        cls.database.create_tables(model_class, safe)
+        cls.database.create_tables(model_class, safe=safe)
         cls.tables[model_class.__name__] = model_class
 
     @classmethod
