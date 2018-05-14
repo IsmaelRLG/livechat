@@ -34,7 +34,7 @@ class database(object):
 
     @classmethod
     def create_tables(cls, models, safe=False):
-        cls.database.create_tables(models, safe)
+        cls.database.create_tables(models, safe=safe)
         for model in models:
             cls.tables[model.__name__] = model
 
