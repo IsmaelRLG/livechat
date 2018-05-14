@@ -16,6 +16,10 @@ parser.add_argument('--verbose',
     action='store_true',
     help='Show verbose messages')
 
+parser.add_argument('-vvv', '--ultra-verbose',
+    action='store_true', dest='uverbose',
+    help='Show more verbose messages')
+
 parser.add_argument('--code',
     action='store_true',
     help='Generate a registration code')
@@ -69,6 +73,9 @@ def main():
     logger.addHandler(handler)
     if args.verbose:
         logger.setLevel(logging.DEBUG)
+        env.verbose = True
+        if args.uverbose:
+            env.uverbose = args.uverbose
     else:
         logger.setLevel(logging.INFO)
 

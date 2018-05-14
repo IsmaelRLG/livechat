@@ -6,11 +6,9 @@ Licensed under the MIT License.
 """
 from __future__ import absolute_import, unicode_literals
 
-import io
 import cv2
 import ssl
 import time
-import Image
 import socket
 import logging
 import getpass
@@ -101,19 +99,13 @@ class client(conncls.conn):
             exit(0)
 
     def get_frame(self):
-        success, image = self.video.read()
-        # We are using Motion JPEG, but OpenCV defaults to capture raw images,
-        # so we must encode it into JPEG in order to correctly display the
-        # video stream.
+        return self.process_frame(self.video.read()[1])
 
-        buff = io.BytesIO(b"")
-        Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).\
-        resize((self.stream_width, self.stream_height), Image.ANTIALIAS).\
-        save(buff, format='jpeg')
-
-        #jpeg = cv2.imencode('.jpg', image)[1]
-
-        return image, buff.getvalue()
+    def process_frame(self, frame):
+        if env.mirror:
+            frame = cv2.flip(frame, 1)
+        return cv2.imencode('.jpg', frame, 
+        [int(cv2.IMWRITE_JPEG_QUALITY), env.jpeg_quality])[1]
 
     def release_webcam(self):
         if self.video:

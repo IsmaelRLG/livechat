@@ -47,15 +47,17 @@ def frames_code(conn, data):
     partial = bytearray()
     length  = 0
     total = 0
+    total_bytes = 0
     title = 'webcam %sx%s' % (data['width'], data['height'])
-    num = lambda x, n: ("%-" + str(n) + "s  ") % x
-    to_del = [0]
+    txt = "[N#: %-6s] [TOTAL BYTES: %-9s] [SIZE: %-6s]"
+    class n:
+        to_del = 0
     cv2.namedWindow(title, cv2.WINDOW_AUTOSIZE)
-    def echo(text, preserve=False):
-        if to_del[0] != 0 and not preserve:
-            sys.stdout.write("\b" * to_del[0])
-            to_del[0] -= to_del[0]
-        to_del[0] += len(text)
+    def echo(text):
+        if n.to_del != 0:
+            sys.stdout.write("\b" * n.to_del)
+            n.to_del -= n.to_del
+        n.to_del += len(text)
         sys.stdout.write(text)
         sys.stdout.flush()
 
@@ -68,7 +70,7 @@ def frames_code(conn, data):
                     img = cv2.imdecode(nparr, cv2.CV_LOAD_IMAGE_COLOR)
 
                     cv2.imshow(title, img)
-                    echo("|| Currently Showing", True)
+
                     # <reset>
                     partial     = partial[length:]
                     bin_length += 1
@@ -98,15 +100,18 @@ def frames_code(conn, data):
                     bin_length += int(str(tmp_data), 2)
                     partial     = bytearray()
                     tmp_length  = conn.socket.recv(bin_length)
-                echo(num(total, 6)+"||  ")
+
                 if tmp_length == "EOF" or not tmp_length.isdigit():
                     break
+
                 length += int(str(tmp_length))
+                total_bytes += length + env.bin_length
                 bin_length -= bin_length + 1
-                echo(num(length, 8), True)
+                if env.verbose:
+                    echo(txt % (total, total_bytes, length))
                 continue
         except Exception as e:
-            logger.exception(e)
+            logger.error(e, exc_info=int(env.verbose))
             break
 
     cv2.destroyAllWindows()
@@ -158,18 +163,34 @@ def recv_code(conn, data):
         return
 
     conn.send_frames = True
-    def frame(frame):
-        #frame = frame.encode('base64').replace('\n', '')
-        length = len(frame)
-        meta = bytearray("%s%s" % (bin(len(str(length))), length), 'utf-8')
-        return meta + frame
 
+    class n:
+        to_del = 0
+        total_bytes = 0
     total = 0
-    title = 'webcam stream %sx%s' % (conn.stream_width, conn.stream_height)
     skip = 0
+    txt = "[N#: %-6s] [TOTAL BYTES: %-9s] [SIZE: %-6s]"
+    title = 'webcam stream %sx%s' % (conn.stream_width, conn.stream_height)
+
+    def echo(text):
+        if n.to_del != 0:
+            sys.stdout.write("\b" * n.to_del)
+            n.to_del -= n.to_del
+        n.to_del += len(text)
+        sys.stdout.write(text)
+        sys.stdout.flush()
+
+    def frame(frame):
+        length = len(frame)
+        if env.verbose:
+            n.total_bytes += env.bin_length + length
+            echo(txt % (total, n.total_bytes, length))
+        meta = bytearray("%s%s" % (bin(len(str(length))), length), 'utf-8')
+        return meta + bytearray(frame)
+
     while True:
         try:
-            img, tmp_frame = conn.get_frame()
+            video_frame = conn.get_frame()
             if env.skip:
                 skip += 1
                 if skip > env.skip:
@@ -178,20 +199,20 @@ def recv_code(conn, data):
                     continue
 
             if env.show_stream:
-                cv2.imshow(title, cv2.flip(img, 1))
+                cv2.imshow(title, cv2.imdecode(video_frame, 1))
                 key = cv2.waitKey(1)
                 if key == 27:
                     break
+            conn.socket.sendall(frame(video_frame.tostring()))
             if env.delay:
                 time.sleep(env.delay)
-            conn.socket.sendall(frame(tmp_frame))
         except Exception as e:
-            logger.exception(e)
+            logger.error(e, exc_info=int(env.verbose))
             try: conn.socket.send('00000000000011EOF')
             except socket.error: pass
             break
         else:
-            total += 1
+            total+= 1
 
     conn.last_msg = time.time()
     conn.send_frames = False

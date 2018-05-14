@@ -6,4 +6,4 @@ Licensed under the MIT License.
 from __future__ import absolute_import, unicode_literals
 
 __author__ = "Ismael Lugo"
-__version__ = "1.2-b7"
+__version__ = "1.3"

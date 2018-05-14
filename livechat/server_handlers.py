@@ -129,7 +129,7 @@ def stream(conn, data):
                 bin_length -= bin_length + 1
                 continue
         except Exception as e:
-            logger.exception(e)
+            logger.error(e, exc_info=int(env.verbose))
             break
 
     conn.code(recv_frame_end, "%s frames received" % total)

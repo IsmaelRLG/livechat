@@ -12,6 +12,7 @@ base_path = os.path.join(os.environ['HOME'], ".livechat")
 database_path = os.path.join(base_path, 'livechat.db')
 pid_file = '.livechat.pid'
 pid_path = base_path
+cap_path = os.path.join(base_path, 'frames')
 log_path = os.path.join(base_path, 'log')
 log_file = os.path.join(log_path, 'livechat.log')
 log_form = '%(asctime)s | %(levelname)-8s | %(message)s'
@@ -19,9 +20,14 @@ if not os.path.exists(base_path):
     os.mkdir(base_path)
 if not os.path.exists(log_path):
     os.mkdir(log_path)
+if not os.path.exists(cap_path):
+    os.mkdir(cap_path)
 
 frame_queues = {}
 EXIT = True
+verbose = False
+uverbose = False
+mirror = False
 default_port = 5789
 show_stream = False
 queue_release = False
@@ -34,6 +40,7 @@ backupCount = 7
 maxBytes = 2**10 * 256  # 256 Kb
 maxconn = 12
 frame_max = 10
+jpeg_quality = 50
 fps = 15
 skip = 1
 delay = 0

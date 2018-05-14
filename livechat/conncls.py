@@ -41,8 +41,9 @@ class conn(object):
         index.sort()
         for runlevel in index:
             for handler in self.handlers[runlevel]:
-                logger.debug('[%s] Running handler %s(%s)',
-                self.address, handler.__name__, runlevel)
+                if env.uverbose:
+                    logger.debug('[%s] Running handler %s(%s)',
+                    self.address, handler.__name__, runlevel)
                 if handler(self, data) is True:
                     break_all += 1
                     break

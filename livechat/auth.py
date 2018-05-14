@@ -50,7 +50,8 @@ def use_code(token, username, password):
         code = codes_tb.get(codes_tb.token == token)
     except codes_tb.DoesNotExist:
         return False
-
+    if code.user is not None:
+        return False
     user = adduser(username, password)
     code.user = user
     code.use_date = datetime.datetime.now()

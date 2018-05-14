@@ -17,21 +17,9 @@ parser.add_argument('-v', '--verbose',
     action='store_true',
     help='Show verbose messages')
 
-parser.add_argument('-s', '--show',
-    action='store_true',
-    help='Show video stream')
-
-parser.add_argument('-d', '--delay',
-    type=int, metavar='<ms>', default=env.delay,
-    help='Show video stream')
-
-parser.add_argument('-f', '--fps',
-    type=int, metavar='<num>', default=env.fps,
-    help='set fps stream')
-
-parser.add_argument('-ss', '--skip',
-    type=int, metavar='<num>', default=env.skip,
-    help='set fps stream')
+parser.add_argument('-vvv', '--ultra-verbose',
+    action='store_true', dest='uverbose',
+    help='Show more verbose messages')
 
 conn = parser.add_argument_group('Connection')
 conn.add_argument('-H', '--host',
@@ -64,6 +52,36 @@ actions.add_argument('-V', '--video',
     type=str, metavar='<id>',
     help='Gets video of the remote stream')
 
+video = parser.add_argument_group('Video')
+video.add_argument('-s', '--show',
+    action='store_true',
+    help='Show video stream')
+
+# feature
+#video.add_argument('-z', '--zlib',
+#    action='store_true',
+#    help='Enable zlib compression')
+
+video.add_argument('-m', '--mirror',
+    action='store_true',
+    help='Flip video to get mirror effect')
+
+video.add_argument('-q', '--quality',
+    type=int, metavar='<num>', default=env.jpeg_quality,
+    help='set video stream quality')
+
+video.add_argument('-d', '--delay',
+    type=int, metavar='<ms>', default=env.delay,
+    help='Show video stream')
+
+video.add_argument('-f', '--fps',
+    type=int, metavar='<num>', default=env.fps,
+    help='set fps stream')
+
+video.add_argument('-sk', '--skip',
+    type=int, metavar='<num>', default=env.skip,
+    help='set fps stream')
+
 
 def main():
     args = parser.parse_args()
@@ -74,8 +92,12 @@ def main():
     logger.addHandler(handler)
     if args.verbose:
         logger.setLevel(logging.DEBUG)
+        env.verbose = True
+        if args.uverbose:
+            env.uverbose = args.uverbose
     else:
         logger.setLevel(logging.INFO)
+        
     if not args.register and not args.stream and not args.video:
         return parser.print_usage()
 
@@ -105,6 +127,19 @@ def main():
         if args.delay:
             env.delay = args.delay / 1000.
             logger.info('Video delay: %s', env.delay)
+        if args.quality:
+            quality = abs(int(args.quality))
+            if quality > 100:
+                quality = 100
+                logger.warning("quality cannot be higher than 100.")
+            elif quality < 1:
+                quality = env.jpeg_quality
+                logger.warning("quality cannot be less than 1.")
+            logger.info('Video quality: %s', quality)
+            env.jpeg_quality = quality
+        if args.mirror:
+            env.mirror = True
+            logger.info('Flipping video')
         args = (int(args.stream) if args.stream.isdigit() else args.stream,)
         _thread.start_new(client.stream_video, args)
     elif args.register:
