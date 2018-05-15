@@ -37,8 +37,8 @@ def frames_code(conn, data):
     [cliente -> servidor] responde que está listo para recibir video. cod: 100
     [cliente <- servidor] el servidor envía el video
     """
-    h = conn.stream_height = int(data['height'])
-    w = conn.stream_width = int(data['width'])
+    conn.stream_height = int(data['height'])
+    conn.stream_width = int(data['width'])
     logger.info('Recv frames %sx%s' % (data['width'], data['height']))
 
     conn.code(recv_frame_start, "Waiting frames...")
