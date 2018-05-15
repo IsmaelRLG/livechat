@@ -7,7 +7,10 @@ python:
 
 install: 
   - pip install -r requirements.txt
+  - pip install .
 
+script:
+  - lc_server --code
 
 branches:
   except:
