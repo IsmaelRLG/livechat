@@ -1,4 +1,3 @@
-
 # coding=utf8
 """
 Copyright © 2018, Ismael Lugo, <ismaelrlgv@gmail.com>
